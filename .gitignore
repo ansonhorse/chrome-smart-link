@@ -1,0 +1,10 @@
+# Created by .ignore support plugin (hsz.mobi)
+/.idea/
+/dist/
+/release/
+/node_modules/
+anxon/js/*
+anxon/dist/anxon.js.map
+!anxon/js/null.js
+
+build/webpack.anxon.js
