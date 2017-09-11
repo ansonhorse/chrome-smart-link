@@ -7,7 +7,8 @@
     "dev": "node build/build.js --dev --app smart_link",
     "build": "node build/build.js --prod --app smart_link",
     "release": "node build/build.js --release --prod --app smart_link",
-    "pack": "node build/pack.js --app smart_link"
+    "pack": "node build/pack.js --app smart_link",
+    "anxon": "webpack --config build/webpack.anxon.js -o anxon/dist/anxon.js"
   },
   "keywords": [
     "anxon"

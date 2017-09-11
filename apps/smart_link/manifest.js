@@ -5,9 +5,9 @@
 const name = 'Smart Link';
 const manifest = {
   name: name,
-  description: 'Smart Link, created by Anxon.',
+  description: 'Smart Link. 设置某些页面(甚至可以是页面里的某个区块)链接的打开方式，以更适应您的使用习惯。Modify hyperlinks open mode, for specified pages, even specified blocks on the page.',
   author: 'Anxon',
-  version: '0.3.70',
+  version: '0.3.73',
   permissions: [
     'contextMenus',
   ],

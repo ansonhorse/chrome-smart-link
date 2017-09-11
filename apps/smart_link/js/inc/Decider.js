@@ -260,7 +260,7 @@ export default class Decider {
     let finalSelectorIndex = null;
 
     this.selectors.forEach((item, index) => {
-      if (!item.jqObj) item.jqObj = this.getSelectorObj(item.selector);
+      if (!item.jqObj || !item.jqObj.length) item.jqObj = this.getSelectorObj(item.selector);
       // if it's body selector, there's no need to use jQuery.has to check
       if (item.selector === 'body') {
         finalSelectorIndex = index;
@@ -270,8 +270,14 @@ export default class Decider {
        * Fortunately, the Web API provides a perfect way to do this:
        * https://developer.mozilla.org/en-US/docs/Web/API/Node/contains
        */
-      else if (item.jqObj && item.jqObj[0].contains(link)) {
-        finalSelectorIndex = index;
+      else if (item.jqObj.length) {
+        item.jqObj.each(function (i, el) {
+          // if el is `a`, means `el === link`, `el.contains(link)` also returns `true`
+          if (el.contains(link)) {
+            finalSelectorIndex = index;
+            return false;
+          }
+        });
       }
     });
 
