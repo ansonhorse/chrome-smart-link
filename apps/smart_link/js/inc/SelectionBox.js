@@ -28,12 +28,15 @@ export default class SelectionBox {
    * @param {Document} edgeContainer Element inside which the edges are inserted.
    *    By default, body
    */
-  constructor(edgeSize = 2, edgeColor = '#65f166', edgeContainer) {
+  constructor(edgeSize = 1, edgeColor = '#65f166', edgeContainer) {
 
     this.edgeSize = edgeSize;
     this.edgeColor = edgeColor;
     this.edgeContainer = edgeContainer ? edgeContainer : $('body').get(0);
     this.edges = {};
+
+    this.viewfinder = this.createViewfinder();
+    this.viewfinder.appendTo(this.edgeContainer);
 
     this.edges.top = this.createEdge();
     this.edges.right = this.createEdge();
@@ -57,6 +60,18 @@ export default class SelectionBox {
       'z-index': '2147483644'
     };
     return $('<div>').css(css);
+  }
+
+  createViewfinder() {
+    let css = {
+      'background-color': 'rgba(50, 100, 255, 0.32)',
+      'position': 'absolute',
+      'z-index': '2147483644 !important',
+      'opacity': 0.5,
+      'pointer-events': 'none',
+      'cursor': 'default !important'
+    };
+    return $('<div class="sl-viewfinder"></div>').css(css);
   }
 
   /**
@@ -118,6 +133,13 @@ export default class SelectionBox {
       this.moveEdge('right', -2 * this.edgeSize, -2 * this.edgeSize);
       this.resizeEdge('right', this.edgeSize, this.edgeSize);
     }
+
+    this.viewfinder.css({
+      left: left,
+      top: top,
+      width: width,
+      height: height,
+    });
   }
 
   /**
@@ -127,6 +149,8 @@ export default class SelectionBox {
   hide() {
     for (let edge in this.edges)
       this.edges[edge].width(0).height(0);
+
+    this.viewfinder.width(0).height(0);
   }
 
   /**
@@ -136,6 +160,8 @@ export default class SelectionBox {
   destroy() {
     for (let edge in this.edges)
       this.edges[edge].remove();
+
+    this.viewfinder.remove();
   }
 
   /**

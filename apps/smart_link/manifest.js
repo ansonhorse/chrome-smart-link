@@ -7,7 +7,7 @@ const manifest = {
   name: name,
   description: 'Smart Link. 设置某些页面(甚至可以是页面里的某个区块)链接的打开方式，以更适应您的使用习惯。Modify hyperlinks open mode, for specified pages, even specified blocks on the page.',
   author: 'Anxon',
-  version: '0.3.73',
+  version: '0.3.81',
   permissions: [
     'contextMenus',
   ],
@@ -26,7 +26,11 @@ const manifest = {
         '<all_urls>'
       ],
       js: [
+        'js/lib/i18n.js',
         'js/frontend.js',
+      ],
+      css: [
+        'css/frontend.css',
       ],
       run_at: 'document_start',
     }

@@ -64,6 +64,9 @@ let messages = {
     bulk_remove: 'Delete selected rules',
     confirm_bulk_remove: 'Confirm to delete these selected rules?',
     confirm_bulk_remove_alert: 'These selected rules will be deleted permanently.',
+
+    tips: 'Tips',
+    inspector_selection_tips: 'Click the selected element to initialize an new rule creation; Press `Escape` to exit selection.',
   },
 };
 

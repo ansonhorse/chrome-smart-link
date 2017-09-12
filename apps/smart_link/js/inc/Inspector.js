@@ -37,6 +37,11 @@ export default class Inspector {
     });
   }
 
+  /**
+   * 
+   * 
+   * @memberof Inspector
+   */
   handleRightClick() {
     let that = this;
     document.oncontextmenu = function (e) {
@@ -45,6 +50,11 @@ export default class Inspector {
     };
   }
 
+  /**
+   * 
+   * 
+   * @memberof Inspector
+   */
   initInspection() {
     this.status = 'on';
     this.setHelperListeners();
@@ -52,29 +62,70 @@ export default class Inspector {
     if (this.el) {
       this.selectionBox.highlight(this.el);
     }
+
+    anxon.toast.warning({
+      title: anxon.t('app.tips'),
+      message: anxon.t('app.inspector_selection_tips'),
+      position: 'topCenter',
+      timeout: 8000,
+      transitionIn: 'bounceInUp',
+    });
   }
 
+  /**
+   * 
+   * 
+   * @returns 
+   * @memberof Inspector
+   */
   setHelperListeners() {
     if (this.isEventListenersSet) return;
     this.isEventListenersSet = true;
     let that = this;
 
-    $('body *').hover(function (e) {
+    document.addEventListener('mousemove', function (e) {
       return that.onElementHover(e);
-    });
+    }, false);
 
-    $('body *').on('click', function (e) {
+    document.addEventListener('click', function (e) {
       return that.onElementClick(e);
+    }, false);
+
+    // Press button `Escape` to exit current selection
+    document.addEventListener('keydown', function (e) {
+      if (e.keyCode === 27) {
+        that.selectionBox.hide();
+        that.status = 'off';
+        e.stopPropagation();
+      }
     });
   }
 
+  /**
+   * 
+   * 
+   * @param {any} e 
+   * @returns 
+   * @memberof Inspector
+   */
   onElementHover(e) {
     if (this.status === 'off') return;
-
+    
     this.selectionBox.highlight(e.target);
   }
 
+  /**
+   * 
+   * 
+   * @param {any} e 
+   * @returns 
+   * @memberof Inspector
+   */
   onElementClick(e) {
+    if (e.target.tagName.toUpperCase() === 'BUTTON' && e.target.classList.contains('iziToast-close')) {
+      return;
+    }
+
     if (this.status === 'off') return;
     let selector = this.selectorGenerator.generate(e.target);
     console.log('[Inspector.onElementClick]', selector, e.target);
@@ -83,7 +134,7 @@ export default class Inspector {
     }, (res) => {
 
     });
-    this.selectionBox.hide(e.target);
+    this.selectionBox.hide();
     this.status = 'off';
 
     e.stopPropagation();

@@ -65,6 +65,9 @@ let messages = {
     bulk_remove: '删除已选规则',
     confirm_bulk_remove: '确定删除已选的规则？',
     confirm_bulk_remove_alert: '删除后将不能恢复',
+
+    tips: '提示',
+    inspector_selection_tips: '单击所选元素将会打开规则创建页面；按下Ecs键退出当前选择。',
   },
 };
 
