@@ -1,6 +1,6 @@
 {
   "name": "smart_link",
-  "version": "0.3.70",
+  "version": "0.3.85",
   "description": "Smart Link, created by Anxon.",
   "main": "index.js",
   "scripts": {
@@ -11,7 +11,9 @@
     "anxon": "webpack --config build/webpack.anxon.js -o anxon/dist/anxon.js"
   },
   "keywords": [
-    "anxon"
+    "anxon",
+    "chrome extension",
+    "smart link"
   ],
   "author": "Anxonhorse",
   "license": "ISC",
@@ -70,6 +72,7 @@
     "bootstrap": "^3.3.7",
     "highlight.js": "^9.12.0",
     "iview": "^2.3.0-beta.1",
+    "izitoast": "^1.1.5",
     "jquery": "^3.2.1",
     "jquery-toast-plugin": "^1.3.1",
     "lodash": "^4.17.4",

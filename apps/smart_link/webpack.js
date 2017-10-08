@@ -1,6 +1,6 @@
 /**
  * the webpack configuration of this app,
- * it will merged with the basic webpack configuration
+ * it will be merged with the basic webpack configuration
  */
 const webpack = require('webpack');
 const path = require('path');

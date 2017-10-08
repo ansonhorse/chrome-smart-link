@@ -60,7 +60,7 @@ export default class Dispatcher {
    * @memberof Dispatcher
    */
   tabRemoved(data, sender, sendResponse) {
-    
+
   }
 
   /**
@@ -225,9 +225,15 @@ export default class Dispatcher {
       }
     };
     data = data || {};
-    let tab = data.tab || sender.tab;
+    let tab = null;
+    if (data.tab) {
+      tab = data.tab;
+    } else {
+      tab = sender.tab;
+      if (sender.frameId) tab.url = sender.url;
+    }
     let rules = [];
-
+    
     let detections = anxon.const.Detections;
     _.each(anxon.options.rules, (rule, index) => {
       if (!rule.enabled && !data.includeDisabled) return;
@@ -310,7 +316,12 @@ export default class Dispatcher {
       title: anxon.t('app.create_rule'),
       onclick: (info, frontendTab) => {
         console.log(info, frontendTab);
-        this.initCreate(frontendTab);
+        let extraInfo = {};
+        if (info.frameId) {
+          extraInfo.pattern = info.frameUrl;
+          extraInfo.frameId = info.frameId;
+        }
+        this.initCreate(frontendTab, extraInfo);
       }
     });
 
@@ -321,15 +332,26 @@ export default class Dispatcher {
       title: anxon.t('app.create_rule_for_elements'),
       onclick: (info, frontendTab) => {
         console.log(info, frontendTab);
-        this.initInspection(frontendTab);
+        this.initInspection(frontendTab, info);
       }
     });
   }
 
-  initInspection(frontendTab) {
-    anxon.messaging.dispatchToTab(frontendTab.id, 'initInspection', null, (res) => {
-      console.log(res);
-    });
+  initInspection(frontendTab, extraInfo = {}) {
+    if (extraInfo.frameId) {
+      chrome.tabs.sendMessage(frontendTab.id, {
+        tag: 'initInspection',
+        data: null,
+      }, {
+        frameId: extraInfo.frameId
+      }, (res) => {
+        console.log(res);
+      });
+    } else {
+      anxon.messaging.dispatchToTab(frontendTab.id, 'initInspection', null, (res) => {
+        console.log(res);
+      });
+    }
   }
 
 }

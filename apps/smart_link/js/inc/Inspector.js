@@ -9,6 +9,8 @@ import SelectionBox from 'anxonApp/js/inc/SelectionBox.js';
 export default class Inspector {
 
   constructor() {
+    this.pageToken = anxon.utils.guid();
+
     this.status = 'off';
 
     this.selectorGenerator = null;
@@ -129,7 +131,11 @@ export default class Inspector {
     if (this.status === 'off') return;
     let selector = this.selectorGenerator.generate(e.target);
     console.log('[Inspector.onElementClick]', selector, e.target);
+
+    // Init rule creation
     anxon.messaging.dispatchMessage('requestCreate', {
+      pattern: window.location.href,
+      memo: document.title,
       selectors: [selector],
     }, (res) => {
 

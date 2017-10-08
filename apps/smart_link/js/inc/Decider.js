@@ -266,7 +266,7 @@ export default class Decider {
         finalSelectorIndex = index;
       }
       /*
-       * P.s. jQuery.has isn't used for check if one element contains other element!
+       * P.s. jQuery.has isn't used for checking if one element contains other elements!
        * Fortunately, the Web API provides a perfect way to do this:
        * https://developer.mozilla.org/en-US/docs/Web/API/Node/contains
        */
@@ -318,16 +318,16 @@ export default class Decider {
     }
     let mode = rule.mode;
 
+    if (!this.verifyUrl(link.href)) {
+      return;
+    }
+
     if (!link.href.match(/^[A-Za-z\d]+:\/\//)) {
       link.href = `${window.location.origin}/${link.href}`;
       link.setAttribute('anxon-href', link.href);
     }
 
     let url = link.getAttribute('anxon-href') || link.href;
-
-    if (!this.verifyUrl(url)) {
-      return;
-    }
 
     let modes = anxon.const.Modes;
     let modesValues = _.toArray(modes);

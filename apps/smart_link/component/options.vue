@@ -257,7 +257,7 @@ export default {
 
 
     requestCreate(data, sender, sendResponse) {
-      console.log('[requestCreate]', data);
+      console.log('[requestCreate]', data, sender);
       let tab = data.tab;
       if (tab) {
         let item = {
@@ -330,9 +330,9 @@ export default {
 
     setLocale(locale) {
       anxon.options.locale = locale;
-      _.delay(() => {
-        location.reload();
-      }, 500);
+      anxon.updateOptions().then(() => {
+        window.location.reload();
+      });
     }
   }
 }

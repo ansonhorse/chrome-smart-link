@@ -7,7 +7,8 @@ const manifest = {
   name: name,
   description: 'Smart Link. 设置某些页面(甚至可以是页面里的某个区块)链接的打开方式，以更适应您的使用习惯。Modify hyperlinks open mode, for specified pages, even specified blocks on the page.',
   author: 'Anxon',
-  version: '0.3.81',
+  version: '0.3.85',
+  minimum_chrome_version: '41',
   permissions: [
     'contextMenus',
   ],
@@ -20,6 +21,7 @@ const manifest = {
         'js/lib/anxon.js',
       ],
       run_at: 'document_start',
+      all_frames: true,
     },
     {
       matches: [
@@ -33,6 +35,7 @@ const manifest = {
         'css/frontend.css',
       ],
       run_at: 'document_start',
+      all_frames: true,
     }
   ],
   background: {
