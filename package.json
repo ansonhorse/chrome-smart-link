@@ -1,6 +1,6 @@
 {
   "name": "smart_link",
-  "version": "0.3.85",
+  "version": "0.3.87",
   "description": "Smart Link, created by Anxon.",
   "main": "index.js",
   "scripts": {

@@ -1,4 +1,5 @@
 /**
+ * Decide how the links will be opened.
  * 
  * @author Anxon
  * @export
@@ -68,7 +69,7 @@ export default class Decider {
     // clean link rule cache
     $('a').removeAttr('anxon-rule');
 
-    // TODO let's see if it's neccessary to remove the attribute anxon-href in the future
+    // TODO let's see if it's neccessary to remove the attribute anxon-href in the future. Nope
 
     this.runSteps();
   }
@@ -83,29 +84,12 @@ export default class Decider {
     anxon.messaging.dispatchMessage('requestRules', null, (res) => {
       this.rulesToken = res.data.rulesToken;
       if (res.status) {
-        this.rules = res.data.rules;       
+        this.rules = res.data.rules;
         mainCont();
       } else {
         console.error('No rules!!!');
       }
     });
-  }
-
-  /**
-   * verify the link url
-   * 
-   * @param {String} url 
-   * @returns {Boolean}
-   * @memberof Decider
-   */
-  verifyUrl(url) {
-    if (url === null || url === undefined) {
-      return false;
-    }
-    if (url.match(/^(#|javascript:|magnet:\/\/|ed2k:\/\/|ftp:\/\/|thunder:\/\/)/)) {
-      return false;
-    }
-    return true;
   }
 
   /**
@@ -224,26 +208,26 @@ export default class Decider {
   setOnClickListener(mainCont) {
     console.log('[Decider.setOnClickListener]');
     anxon.utils.onElementsLoaded('body', {
-      interval: 30,
-      expire: 10 * 60 * 1000,
-    })
-    .then(() => {
-      if (this.clickListenerSet) {
-        mainCont();
-      } else {
-        this.clickListenerSet = true;
-        let that = this;
-        $('body').on('click', 'a', function () {
-          let rule = that.computeFinalRule(this);
-          return that.requestOpener(this, rule);
-        });
-        mainCont();
-      }
-    })
-    .catch(err => {
-      console.warn('[onElementsLoaded]', err);
-      Thenjs().fin(err);
-    });
+        interval: 30,
+        expire: 10 * 60 * 1000,
+      })
+      .then(() => {
+        if (this.clickListenerSet) {
+          mainCont();
+        } else {
+          this.clickListenerSet = true;
+          let that = this;
+          $('body').on('click', 'a', function () {
+            let rule = that.computeFinalRule(this);
+            return that.requestOpener(this, rule);
+          });
+          mainCont();
+        }
+      })
+      .catch(err => {
+        console.warn('[onElementsLoaded]', err);
+        Thenjs().fin(err);
+      });
   }
 
   /**
@@ -283,6 +267,7 @@ export default class Decider {
 
     if (finalSelectorIndex !== null) {
       let ruleIndex = this.selectors[finalSelectorIndex].ruleIndex;
+      // make a cache
       link.setAttribute('anxon-rule', ruleIndex);
       return this.rules[ruleIndex];
     }
@@ -305,6 +290,29 @@ export default class Decider {
   }
 
   /**
+   * verify the link url
+   * 
+   * @param {String} url 
+   * @returns {Boolean}
+   * @memberof Decider
+   */
+  verifyUrl(url) {
+    // ignore when el.getAttribute('href') === `null` or `undefined`, but empty string should be fine.
+    if (url === null || url === undefined) {
+      return false;
+    }
+    /*
+      1. starts with `#`
+      2. starts with `javascript`
+      3. starts with some other special schemes: `magnet`,`ed2k`,'ftp`,`thunder`, etc.
+    */
+    if (url.match(/^(#|javascript:|magnet:\/\/|ed2k:\/\/|ftp:\/\/|thunder:\/\/)/)) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
    * request opener
    * 
    * @param {Document} link
@@ -317,17 +325,38 @@ export default class Decider {
       return;
     }
     let mode = rule.mode;
+    /*
+      P.s.
+      el = `<a>link</a>`
+      And we can find out these:
+        el.getAttribute('href') === null
+        el.href === $(el)[0].href === ''
+        $(el).attr('href') === undefined
 
-    if (!this.verifyUrl(link.href)) {
+      I think it should be regraded as `null` or `undefined`.
+      Because `<a href="">link</a>`, refers to current url.
+      So to avoid ambiguity, using `el.getAttribute` may be a better way to get the right `href` attribute.
+    */
+    let href = link.getAttribute('href');
+    if (!this.verifyUrl(href)) {
       return;
     }
-
-    if (!link.href.match(/^[A-Za-z\d]+:\/\//)) {
-      link.href = `${window.location.origin}/${link.href}`;
-      link.setAttribute('anxon-href', link.href);
+    // when url not starts with `http` or `https`
+    if (!href.match(/^[A-Za-z\d]+:\/\//)) {
+      // if starts with `//`
+      if (href.indexOf('//') === 0) {
+        // prepend the protocol
+        href = window.location.protocol + href;
+      } else {
+        // generate full url
+        let slash = href.indexOf('/') === 0 ? '' : '/';
+        href = `${window.location.origin}${slash}${href}`;
+      }
+      // TODO should make a cache for the href? 
+      link.setAttribute('anxon-href', href);
     }
 
-    let url = link.getAttribute('anxon-href') || link.href;
+    let url = link.getAttribute('anxon-href') || link.getAttribute('href');
 
     let modes = anxon.const.Modes;
     let modesValues = _.toArray(modes);

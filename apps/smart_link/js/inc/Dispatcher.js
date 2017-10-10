@@ -35,6 +35,7 @@ export default class Dispatcher {
       });
     });
 
+    // this can make it no need to reload the page to make the new rules applied
     chrome.windows.onFocusChanged.addListener(windowId => {
       chrome.tabs.query({
         active: true
@@ -267,6 +268,29 @@ export default class Dispatcher {
       }
       matched && rules.push(rule);
     });
+
+    /*
+      已知问题：badgeText可能会因为同一标签页里的frame的rule数量不同，而显示“错误”。
+      原因：requestRules的发起者实际是页面的frame，当然一般是一个，也就是frame的url跟tab的url一致。
+      但是嵌套frame的情况也有一些，就会出现如下所述的问题：
+      比如，主frame，有两个rules，但是它里面的frame只有一个，如果后者的requestRules发生在前者之后，
+      那最终badgeText是1，而不是2。
+      怎么解决？
+      思路1：撒手不管(๑*◡*๑) 好主意！！！
+      思路2：以frame组为单位，来requestRules，到时候，badgeText就是这个frame组rules的总和。
+
+      Known problem: badgeText may be 'incorrect' because of the number of frames in the same page.
+      Reason: the originator of requestRules is actually the frame of the page, which is, of course, 
+      typically one, which is the url of the frame that is consistent with the url of the TAB.
+
+      But there are also some cases of nested frames, as follows:
+      For example, the main frame, with two rules, but one of its frame, which just with one rule, 
+      if the latter's requestRules occurs after the former,
+      That eventually badgeText is 1, not 2.
+      Thoughts?
+      Idea 1: let it go (～￣▽￣)～ bravo!!!
+      Idea 2: all frames requestRules in one time, badgeText is the sum of the frame group rules.
+    */
 
     let badgeText = '';
     if (rules.length) {
