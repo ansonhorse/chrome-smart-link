@@ -305,11 +305,18 @@ export default class Decider {
       1. starts with `#`
       2. starts with `javascript`
       3. starts with some other special schemes: `magnet`,`ed2k`,'ftp`,`thunder`, etc.
+      TODO maybe just `http`, `https`, 'file`
     */
-    if (url.match(/^(#|javascript:|magnet:\/\/|ed2k:\/\/|ftp:\/\/|thunder:\/\/)/)) {
+    /* if (url.match(/^(#|javascript:|magnet:\/\/|ed2k:\/\/|ftp:\/\/|thunder:\/\/)/)) {
       return false;
-    }
-    return true;
+    } */
+    let pattern = /^#/;
+    if (pattern.test(url)) return false;
+    pattern = /^\w+:/;
+    if (!pattern.test(url)) return true;
+    let schemes = ['http', 'https', 'file'];
+    let scheme = url.substr(0, url.indexOf(':'));
+    return schemes.indexOf(scheme) >= 0;
   }
 
   /**
@@ -335,14 +342,19 @@ export default class Decider {
 
       I think it should be regraded as `null` or `undefined`.
       Because `<a href="">link</a>`, refers to current url.
-      So to avoid ambiguity, using `el.getAttribute` may be a better way to get the right `href` attribute.
+      
+      2017-10-11 22:46:42
+      Before verifyUrl, use `link.getAttribute('href')`,
+      and use `link.href` after;
+
     */
     let href = link.getAttribute('href');
     if (!this.verifyUrl(href)) {
       return;
     }
-    // when url not starts with `http` or `https`
-    if (!href.match(/^[A-Za-z\d]+:\/\//)) {
+    // It seems that `link.href` is the full url
+    let url = link.href;
+    /* if (!href.match(/^[A-Za-z\d]+:\/\//)) {
       // if starts with `//`
       if (href.indexOf('//') === 0) {
         // prepend the protocol
@@ -356,7 +368,7 @@ export default class Decider {
       link.setAttribute('anxon-href', href);
     }
 
-    let url = link.getAttribute('anxon-href') || link.getAttribute('href');
+    let url = link.getAttribute('anxon-href') || link.getAttribute('href'); */
 
     let modes = anxon.const.Modes;
     let modesValues = _.toArray(modes);

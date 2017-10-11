@@ -176,7 +176,7 @@ function _build() {
         fs.mkdirSync(common.RELEASE_PATH);
       }
 
-      let filepath = common.RELEASE_PATH + utils.getReleaseFilename(commander.app) + '.zip';
+      let filepath = common.RELEASE_PATH + utils.getReleaseFilename(commander.app) + (commander.release ? '.prod' : '.dev') + '.zip';
       let output = fs.createWriteStream(filepath);
       let archive = archiver('zip');
       // listen for all archive data to be written 
