@@ -8,6 +8,7 @@ export default class Dispatcher {
 
   constructor() {
     this.rulesToken = anxon.utils.guid();
+    this.tabs = {};
     this.init();
   }
 
@@ -16,6 +17,7 @@ export default class Dispatcher {
       'tabRemoved',
       'requestOpener',
       'requestRules',
+      'bulkRequestRules',
       'rulesModified',
       'requestCreate',
     ];
@@ -31,7 +33,11 @@ export default class Dispatcher {
       anxon.messaging.dispatchToTab(activeInfo.tabId, 'tabActivated', {
         rulesToken: this.rulesToken,
       }, (res) => {
-        console.log(res);
+        // console.log(res);
+      });
+
+      this.bulkRequestRules({
+        tabId: activeInfo.tabId
       });
     });
 
@@ -43,11 +49,16 @@ export default class Dispatcher {
         anxon.messaging.dispatchToTab(tabs[0].id, 'tabActivated', {
           rulesToken: this.rulesToken,
         }, (res) => {
-          console.log(res);
+          // console.log(res);
+        });
+
+        this.bulkRequestRules({
+          tabId: tabs[0].id
         });
       });
     });
 
+    this.onTabUpdated();
     this.setContextMenus();
     this.onExtensionInstalled();
   }
@@ -62,6 +73,21 @@ export default class Dispatcher {
    */
   tabRemoved(data, sender, sendResponse) {
 
+  }
+
+  onTabUpdated() {
+    chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+      if (changeInfo.status === 'loading') {
+        this.tabs[tabId] = {
+          rulesNum: 0,
+        };
+      } else if (changeInfo.status === 'complete') {
+        this.bulkRequestRules({
+          tabId: tabId,
+          abortOnOnlyOneFrame: true,
+        });
+      }
+    });
   }
 
   /**
@@ -209,7 +235,53 @@ export default class Dispatcher {
   }
 
   /**
+   * Compute the rules for the url
    * 
+   * @param {String} url 
+   * @param {Object} [options={}] 
+   * @returns {Array}
+   * @memberof Dispatcher
+   */
+  computeRules(url, options = {}) {
+    let rules = [];
+    let detections = anxon.const.Detections;
+    _.each(anxon.options.rules, (rule, index) => {
+      if (!rule.enabled && !options.includeDisabled) return;
+      let matched = false;
+      switch (rule.detection) {
+        case detections.CONTAINS:
+          matched = url.indexOf(rule.pattern) > -1;
+          break;
+
+        case detections.STARTS_WITH:
+          matched = _.startsWith(url, rule.pattern);
+          break;
+
+        case detections.ENDS_WITH:
+          matched = _.endsWith(url, rule.pattern);
+          break;
+
+        case detections.EXACT:
+          matched = url === rule.pattern;
+          break;
+
+        case detections.REGEXP:
+          try {
+            let reg = new RegExp(rule.pattern);
+            matched = reg.test(url);
+          } catch (e) {
+            console.log('Invalid regular expression string:', rule.pattern);
+            console.warn(e.message);
+          }
+          break;
+      }
+      matched && rules.push(rule);
+    });
+
+    return rules;
+  }
+
+  /**
    * get all the rules for the tab
    * 
    * @param {Object} data 
@@ -233,41 +305,9 @@ export default class Dispatcher {
       tab = sender.tab;
       if (sender.frameId) tab.url = sender.url;
     }
-    let rules = [];
-    
-    let detections = anxon.const.Detections;
-    _.each(anxon.options.rules, (rule, index) => {
-      if (!rule.enabled && !data.includeDisabled) return;
-      let matched = false;
-      switch (rule.detection) {
-        case detections.CONTAINS:
-          matched = tab.url.indexOf(rule.pattern) > -1;
-          break;
+    let url = tab.url;
 
-        case detections.STARTS_WITH:
-          matched = _.startsWith(tab.url, rule.pattern);
-          break;
-
-        case detections.ENDS_WITH:
-          matched = _.endsWith(tab.url, rule.pattern);
-          break;
-
-        case detections.EXACT:
-          matched = tab.url === rule.pattern;
-          break;
-
-        case detections.REGEXP:
-          try {
-            let reg = new RegExp(rule.pattern);
-            matched = reg.test(tab.url);
-          } catch (e) {
-            console.log('Invalid regular expression string:', rule.pattern);
-            console.warn(e.message);
-          }
-          break;
-      }
-      matched && rules.push(rule);
-    });
+    let rules = this.computeRules(url, data);
 
     /*
       已知问题：badgeText可能会因为同一标签页里的frame的rule数量不同，而显示“错误”。
@@ -303,7 +343,64 @@ export default class Dispatcher {
       text: badgeText,
       tabId: tab.id,
     });
+
     sendResponse(res);
+  }
+
+  /**
+   * 
+   * 
+   * @param {Object} data 
+   * @param {Object} sender 
+   * @param {Function} sendResponse 
+   * @memberof Dispatcher
+   */
+  bulkRequestRules(data = {}, sender, sendResponse) {
+    let res = {
+      status: 0,
+      message: 'No any custom rules for tab frames',
+      data: {
+        rulesToken: this.rulesToken,
+      }
+    };
+
+    let tabId = data.tabId ? data.tabId : sender.tab.id;
+
+    // https://developer.chrome.com/extensions/webNavigation#method-getAllFrames
+    chrome.webNavigation.getAllFrames({
+      tabId: tabId
+    }, (details) => {
+      if (data.abortOnOnlyOneFrame && details.length === 1) {
+        return;
+      }
+      let rules = [];
+      _.each(details, (detail) => {
+        if (!detail.url || detail.url === 'about:blank') return;
+        rules = rules.concat(this.computeRules(detail.url, data));
+      });
+
+      let badgeText = '';
+      if (rules.length) {
+        rules = _.uniq(rules);
+        badgeText = rules.length > 99 ? '99+' : rules.length.toString();
+        res.message = `${rules.length} custom rules fetched.`;
+        res.status = 1;
+        res.data.rules = rules;
+      }
+      chrome.browserAction.setBadgeText({
+        text: badgeText,
+        tabId: tabId,
+      });
+
+      if (details.length > 1) {
+        chrome.browserAction.setBadgeBackgroundColor({
+          color: '#f40',
+          tabId: tabId,
+        });
+      }
+  
+      _.isFunction(sendResponse) && sendResponse(res);
+    });
   }
 
   /**
@@ -373,7 +470,7 @@ export default class Dispatcher {
       });
     } else {
       anxon.messaging.dispatchToTab(frontendTab.id, 'initInspection', null, (res) => {
-        console.log(res);
+        // console.log(res);
       });
     }
   }

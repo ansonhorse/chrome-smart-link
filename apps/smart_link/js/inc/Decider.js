@@ -54,7 +54,7 @@ export default class Decider {
   }
 
   onTabActivated(data, sender, sendResponse) {
-    console.log('[Decider.onTabActivated]');
+    // console.log('[Decider.onTabActivated]');
     if (this.rulesToken !== data.rulesToken) {
       this.refresh();
     }
@@ -84,10 +84,11 @@ export default class Decider {
     anxon.messaging.dispatchMessage('requestRules', null, (res) => {
       this.rulesToken = res.data.rulesToken;
       if (res.status) {
+        console.log('[Decider.requestRules]', res);
         this.rules = res.data.rules;
         mainCont();
       } else {
-        console.error('No rules!!!');
+        console.log('[Decider.requestRules] No rules!!!');
       }
     });
   }
@@ -206,7 +207,7 @@ export default class Decider {
    * @memberof Decider
    */
   setOnClickListener(mainCont) {
-    console.log('[Decider.setOnClickListener]');
+    // console.log('[Decider.setOnClickListener]');
     anxon.utils.onElementsLoaded('body', {
         interval: 30,
         expire: 10 * 60 * 1000,

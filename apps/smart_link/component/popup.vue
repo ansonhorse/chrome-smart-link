@@ -101,16 +101,17 @@ export default {
 
     requestRules() {
       let app = this;
-      // windowId defaults to the current window
       chrome.tabs.query({
+        currentWindow: true,
         active: true
       }, (tabs) => {
         if (!tabs.length) {
           return;
         }
         let tab = tabs[0];
-        anxon.messaging.dispatchMessage('requestRules', {
+        anxon.messaging.dispatchMessage('bulkRequestRules', {
           tab: tab,
+          tabId: tab.id,
           includeDisabled: true,
         }, (res) => {
           if (res.status) {
