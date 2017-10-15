@@ -57,14 +57,23 @@ let messages = {
     status: '状态',
     operations: '操作',
 
+    view_on_store: '到Chrom应用商店查看Smart Link',
+    view_on_github: '到Github上查看Smart Link项目',
     set_locale: '设置显示语言',
     create_rule_for_current_tab: '为当前标签创建新的规则',
     no_active_tab: '没有处于激活状态的标签',
     no_tab_provided: '没有传递tab或者tab为空！',
 
+    save_success: '保存成功',
+    remove_success: '删除成功',
+    bulk_remove_success: '批量删除成功',
+    duplicate_success: '复制成功',
+
     bulk_remove: '删除已选规则',
     confirm_bulk_remove: '确定删除已选的规则？',
     confirm_bulk_remove_alert: '删除后将不能恢复',
+
+    drag_me_to_sort: '拖拽排序',
 
     tips: '提示',
     inspector_selection_tips: '单击所选元素将会打开规则创建页面；按下Ecs键退出当前选择。',

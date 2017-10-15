@@ -85,7 +85,8 @@ export default class Decider {
       this.rulesToken = res.data.rulesToken;
       if (res.status) {
         console.log('[Decider.requestRules]', res);
-        this.rules = res.data.rules;
+        // reverse the rules, the last matched rule will be applied
+        this.rules = res.data.rules.reverse();
         mainCont();
       } else {
         console.log('[Decider.requestRules] No rules!!!');
@@ -376,6 +377,10 @@ export default class Decider {
 
     if (modesValues.indexOf(mode) > -1) {
       switch (mode) {
+        case modes.DEFAULT:
+          return;
+          break;
+
         case modes.CURRENT_TAB:
           window.location.href = url;
           break;

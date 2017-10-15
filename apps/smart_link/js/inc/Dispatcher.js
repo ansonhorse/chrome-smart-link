@@ -8,7 +8,7 @@ export default class Dispatcher {
 
   constructor() {
     this.rulesToken = anxon.utils.guid();
-    this.tabs = {};
+    // this.tabs = {};
     this.init();
   }
 
@@ -78,9 +78,9 @@ export default class Dispatcher {
   onTabUpdated() {
     chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
       if (changeInfo.status === 'loading') {
-        this.tabs[tabId] = {
+        /* this.tabs[tabId] = {
           rulesNum: 0,
-        };
+        }; */
       } else if (changeInfo.status === 'complete') {
         this.bulkRequestRules({
           tabId: tabId,
@@ -425,7 +425,7 @@ export default class Dispatcher {
   }
 
   /**
-   * add context menus
+   * Add context menus
    * 
    * @memberof Dispatcher
    */

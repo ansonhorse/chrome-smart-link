@@ -56,10 +56,19 @@ let messages = {
     status: 'Status',
     operations: 'Operations',
 
+    view_on_store: 'View Smart Link on Chrome Web Store',
+    view_on_github: 'View Smart Link project on Github',
     set_locale: 'Set Language',
     create_rule_for_current_tab: 'Create new rule for current tab',
     no_active_tab: 'No active tab!',
     no_tab_provided: 'No tab info passed!',
+
+    save_success: 'Rule saved successfully',
+    remove_success: 'Rule removed successfully',
+    bulk_remove_success: 'Rules removed successfully',
+    duplicate_success: 'Rule duplicated successfully',
+
+    drag_me_to_sort: 'Drag and sort',
 
     bulk_remove: 'Delete selected rules',
     confirm_bulk_remove: 'Confirm to delete these selected rules?',
