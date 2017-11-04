@@ -322,6 +322,28 @@ export default class Decider {
   }
 
   /**
+   * Check if link binded events
+   * 
+   * @param {Document} link 
+   * @returns {Boolean}
+   * @memberof Decider
+   */
+  isLinkBindedEvents(link) {
+    let events = [
+      'onclick',
+      'ondblclick',
+    ];
+    let binded = false;
+    _.each(events, eventName => {
+      if (link.getAttribute(eventName)) {
+        binded = true;
+        return false;
+      }
+    });
+    return binded;
+  }
+
+  /**
    * request opener
    * 
    * @param {Document} link
@@ -354,6 +376,9 @@ export default class Decider {
     if (!this.verifyUrl(href)) {
       return;
     }
+    if (this.isLinkBindedEvents(link)) {
+      return;
+    }
     // It seems that `link.href` is the full url
     let url = link.href;
     /* if (!href.match(/^[A-Za-z\d]+:\/\//)) {
@@ -381,14 +406,15 @@ export default class Decider {
           return;
           break;
 
-        case modes.CURRENT_TAB:
+        /* case modes.CURRENT_TAB:
           window.location.href = url;
-          break;
+          break; */
 
         case modes.NEW_TAB:
           window.open(url);
           break;
 
+        case modes.CURRENT_TAB:
         case modes.BACKGROUND_TAB:
         case modes.WINDOW:
         case modes.INCOGNITO_WINDOW:

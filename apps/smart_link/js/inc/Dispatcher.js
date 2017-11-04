@@ -150,6 +150,7 @@ export default class Dispatcher {
     let modes = anxon.const.Modes;
     let tab = sender.tab;
     let createData = {};
+    let updateData = {};
     let noReaction = false;
     switch (data.mode) {
       case modes.DEFAULT:
@@ -157,18 +158,26 @@ export default class Dispatcher {
         noReaction = true;
         break;
 
+      case modes.CURRENT_TAB:
+        updateData.url = data.url;
+        break;
+
       case modes.NEW_TAB:
+        createData.url = data.url;
         createData.active = true;
         break;
 
       case modes.BACKGROUND_TAB:
+        createData.url = data.url;
         createData.active = false;
         break;
 
       case modes.WINDOW:
+        createData.url = data.url;
         break;
 
       case modes.INCOGNITO_WINDOW:
+        createData.url = data.url;
         createData.incognito = true;
         break;
 
@@ -185,20 +194,33 @@ export default class Dispatcher {
         }
       });
     } else {
-      createData.url = data.url;
-      let method = 'createTab';
-      if ([modes.WINDOW, modes.INCOGNITO_WINDOW].indexOf(data.mode) > -1) {
-        method = 'createWindow';
-      }
-      this[method](createData, (tab) => {
-        sendResponse({
-          status: 1,
-          message: `${anxon.manifest.name} had opened the link as you wish`,
-          data: {
-            tab: tab
-          }
+      if (!_.isEmpty(createData)) {
+        // createData.url = data.url;
+        let method = 'createTab';
+        if ([modes.WINDOW, modes.INCOGNITO_WINDOW].indexOf(data.mode) > -1) {
+          method = 'createWindow';
+        }
+        this[method](createData, (tab) => {
+          sendResponse({
+            status: 1,
+            message: `${anxon.manifest.name} had opened the link as you wish`,
+            data: {
+              tab: tab
+            }
+          });
         });
-      });
+      } else if (!_.isEmpty(updateData)) {
+        // updateData.url = data.url;
+        chrome.tabs.update(tab.id, updateData, () => {
+          sendResponse({
+            status: 1,
+            message: `${anxon.manifest.name} had opened the link as you wish`,
+            data: {
+              tab: tab
+            }
+          });
+        });
+      }
     }
     return true;
   }
@@ -370,6 +392,10 @@ export default class Dispatcher {
     chrome.webNavigation.getAllFrames({
       tabId: tabId
     }, (details) => {
+      // `details` could be `null` when the new tab closed instantly after its opening
+      if (!details) return;
+
+      // if `abortOnOnlyOneFrame and amount of frames is one, return
       if (data.abortOnOnlyOneFrame && details.length === 1) {
         return;
       }
@@ -398,7 +424,7 @@ export default class Dispatcher {
           tabId: tabId,
         });
       }
-  
+
       _.isFunction(sendResponse) && sendResponse(res);
     });
   }

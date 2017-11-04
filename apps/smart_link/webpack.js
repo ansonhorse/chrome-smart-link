@@ -15,11 +15,17 @@ const extractCss = new ExtractTextPlugin({
   filename: 'css/[name].css',
 });
 
-
 const extractVueMaterialCss = new ExtractTextPlugin({
   filename: 'css/vue-material.css',
 });
 
+const extractBootstrapCss = new ExtractTextPlugin({
+  filename: 'css/bootstrap.css',
+});
+
+const extractIViewCss = new ExtractTextPlugin({
+  filename: 'css/iview.css',
+});
 
 const ROOT_PATH = path.resolve(__dirname, '../../');
 const common = require(ROOT_PATH + '/build/common.js');
@@ -48,6 +54,8 @@ let config = {
     popup: APP_PATH + '/js/popup.js',
     options: APP_PATH + '/js/options.js',
     // ...some other entries
+    // bs: APP_PATH + '/js/bs.js',
+    // iview: APP_PATH + '/js/iview.js',
   },
 
   module: {
@@ -74,6 +82,22 @@ let config = {
       {
         test: /(vue-material|md-icon)\.(\w+\.)?css$/,
         use: extractVueMaterialCss.extract({
+          fallback: 'style-loader',
+          use: 'css-loader',
+        })
+      },
+
+      {
+        test: /bootstrap\.(\w+\.)?css$/,
+        use: extractBootstrapCss.extract({
+          fallback: 'style-loader',
+          use: 'css-loader',
+        })
+      },
+
+      {
+        test: /iview\.(\w+\.)?css$/,
+        use: extractIViewCss.extract({
           fallback: 'style-loader',
           use: 'css-loader',
         })
@@ -117,6 +141,39 @@ let config = {
         );
       }
     }),
+
+    /* new HtmlWebpackPlugin({
+      template: APP_PATH + '/html/bs.html',
+      filename: APP_DIST_PATH + '/html/bs.html',
+      inject: 'body',
+      chunks: [
+        'vendor', 'anxon', 'i18n', 'vue', 'bs',
+      ],
+      chunksSortMode: function(chunk1, chunk2) {
+        return utils.chunksSorter(
+          chunk1, chunk2, [
+            'vendor', 'anxon', 'i18n', 'vue', 'bs',
+          ]
+        );
+      }
+    }),
+
+    new HtmlWebpackPlugin({
+      template: APP_PATH + '/html/iview.html',
+      filename: APP_DIST_PATH + '/html/iview.html',
+      inject: 'body',
+      chunks: [
+        'vendor', 'anxon', 'i18n', 'vue', 'iview',
+      ],
+      chunksSortMode: function(chunk1, chunk2) {
+        return utils.chunksSorter(
+          chunk1, chunk2, [
+            'vendor', 'anxon', 'i18n', 'vue', 'iview',
+          ]
+        );
+      }
+    }), */
+
     extractCss,
     extractVueMaterialCss,
   ]

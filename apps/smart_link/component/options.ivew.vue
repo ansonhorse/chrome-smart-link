@@ -10,16 +10,6 @@
         <small style="color:#9fa8da;">v{{ manifest.version }}</small>
       </h2>
 
-
-      <md-button class="btn-link" href="https://chrome.google.com/webstore/detail/smart-link/aeapnaldjboamkedmpocaggbgbagihih" target="_blank">
-        <md-tooltip>{{ $t('app.view_on_store') }}</md-tooltip>
-        Store
-      </md-button>
-      <md-button class="btn-link" href="https://github.com/ansonhorse/chrome-smart-link" target="_blank">
-        <md-tooltip>{{ $t('app.view_on_github') }}</md-tooltip>
-        Github
-      </md-button>
-
       <md-button md-menu-trigger>
         <md-menu md-direction="bottom left">
           <md-button md-menu-trigger class="md-icon-button md-danger">
@@ -43,10 +33,7 @@
 
     <md-table-card>
       <md-toolbar>
-        <h1 class="md-title">
-          {{ $t('app.rules_list') }}
-          <small style="color:#9e9e9e">({{ options.rules.length }})</small>
-        </h1>
+        <h1 class="md-title">{{ $t('app.rules_list') }}</h1>
 
         <md-button class="md-icon-button md-primary" @click.native="add(null)">
           <md-tooltip>{{ $t('app.add') }}</md-tooltip>
@@ -59,7 +46,7 @@
         </md-button>
       </md-toolbar>
 
-      <md-table md-sort="" md-sort-type="desc" @select="onRulesSelect" id="rules">
+      <md-table md-sort="" md-sort-type="desc" @select="onRulesSelect">
         <md-table-header>
           <md-table-row>
             <md-table-head>#</md-table-head>
@@ -74,11 +61,8 @@
         </md-table-header>
 
         <md-table-body v-if="!!options.rules">
-          <md-table-row v-for="(item, index) in options.rules" :key="index" :index="item.index" :md-item="item" md-selection>
-            <md-table-cell class="drag-handler">
-              <md-tooltip>{{ $t('app.drag_me_to_sort') }}</md-tooltip>
-              {{ index + 1 }}
-            </md-table-cell>
+          <md-table-row v-for="(item, index) in options.rules" :key="index" :md-item="item" md-selection>
+            <md-table-cell>{{ index + 1 }}</md-table-cell>
 
             <md-table-cell>{{ item.memo }}</md-table-cell>
 
@@ -147,18 +131,11 @@
       <RuleForm :rule="formRule" @save="save" @cancel="cancel" ref="ruleForm"></RuleForm>
     </div>
 
-    <md-snackbar :md-position="sb.vertical + ' ' + sb.horizontal" ref="snackbar" :md-duration="sb.duration">
-      <span v-html="sb.message"></span>
-    </md-snackbar>
-
   </div>
 </template>
 
 <script>
 import RuleForm from './RuleForm.vue';
-import Sortable from 'sortablejs';
-
-window.Sortable = Sortable;
 
 export default {
   metaInfo: {
@@ -172,7 +149,7 @@ export default {
   data() {
     return {
       manifest: anxon.manifest,
-      options: _.clone(anxon.options),
+      options: anxon.options,
       modes: anxon.const.Modes,
       logo: chrome.runtime.getURL('img/icon_48.png'),
       formRuleIndex: null,
@@ -184,35 +161,15 @@ export default {
         ok: '',
         cancel: '',
         onClose: '',
-      },
-      sb: {
-        message: '',
-        vertical: 'top',
-        horizontal: 'center',
-        duration: 1000,
       }
     }
   },
 
   created() {
-    // 没有添加这个index之前的版本，可能会有问题
-    _.each(this.options.rules, (rule, index) => {
-      rule.index = index;
-    });
-
     anxon.messaging.addListener('create', this.requestCreate);
 
     this.confirm.ok = this.$t('app.ok');
     this.confirm.cancel = this.$t('app.cancel');
-  },
-
-  mounted() {
-    let sortable = new Sortable(document.querySelector('#rules tbody'), {
-      handle: '.drag-handler',
-      chosenClass: 'chosen',
-      ghostClass: 'ghost',
-      onEnd: this.onSorted,
-    });
   },
 
   watch: {
@@ -232,12 +189,6 @@ export default {
   methods: {
     onRulesModified() {
       anxon.messaging.dispatchMessage('rulesModified');
-    },
-
-    notify(message, duration = 2000) {
-      this.sb.message = message;
-      this.sb.duration = duration;
-      this.$refs.snackbar.open();
     },
 
     openDialog(ref) {
@@ -280,13 +231,11 @@ export default {
       });
       this.options.rules = rulesLeft;
       this.onRulesModified();
-      this.notify(this.$t('app.bulk_remove_success'));
     },
 
     remove(index) {
       this.options.rules.splice(index, 1);
       this.onRulesModified();
-      this.notify(this.$t('app.remove_success'), 1000);
     },
 
     edit(index) {
@@ -342,7 +291,6 @@ export default {
       item.id = anxon.utils.guid();
       this.options.rules.push(item);
       this.onRulesModified();
-      this.notify(this.$t('app.duplicate_success'), 800);
     },
 
     save(res) {
@@ -374,7 +322,6 @@ export default {
       }
 
       this.$refs.ruleForm.close();
-      this.notify(this.$t('app.save_success'), 1000);
     },
 
     cancel() {
@@ -383,35 +330,9 @@ export default {
 
     setLocale(locale) {
       anxon.options.locale = locale;
-      anxon.updateOptions().then(() => {
-        window.location.reload();
-      });
-    },
-
-    onSorted(evt) {
-      if (evt.oldIndex === evt.newIndex) return;
-      
-      window.vm = this;
-
-      let rows = document.querySelectorAll('#rules tbody tr');
-      let indices = [];
-      rows.forEach((row, index) => {
-        if (!row.classList.contains('sortable-ghost'))
-          indices.push(parseInt(row.getAttribute('index')));
-      });
-      let sortedRules = [];
-      let i = 0;
-      indices.forEach(index => {
-        let rule = _.clone(this.options.rules[index]);
-        rule.index = i;
-        i++;
-        sortedRules.push(rule);
-      });
-      anxon.options.rules = sortedRules;
-      this.onRulesModified();
-      anxon.updateOptions().then(() => {
-        window.location.reload();
-      });
+      _.delay(() => {
+        location.reload();
+      }, 500);
     }
   }
 }
@@ -456,13 +377,4 @@ export default {
 .md-dialog-title
   margin-bottom 0px !important
   padding 18px 24px 0 24px !important
-
-.btn-link
-  text-transform none !important
-
-.drag-handler
-  cursor move
-
-.chosen
-  background #edffd7
 </style>
